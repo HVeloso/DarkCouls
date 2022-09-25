@@ -1,5 +1,6 @@
-// Organizando o código
-// -- 25/09
+// Atualização 1.2
+// Melhorando a interação com o jogador (menu de upgrades e escolha de ação)
+// --- dia: 25/09
 
 // Autor: Hígaro Veloso
 // Email: hvelosocontato@gmail.com
@@ -43,6 +44,7 @@
 #define LIMITE_CHANCE_DESVIO_INIMIGO 50
 
 // Valores do jogo
+#define TAMANHO_MAXIMO_NOME 20
 #define RECOMPENSA_MANA 2
 #define RECOMPENSA_POCAO 2
 #define RECOMPENSA_PONTOS 3
@@ -51,6 +53,7 @@
 
 // Declaração de variáveis globais
 // Variáveis do jogador
+char nomeDoJogador[TAMANHO_MAXIMO_NOME];
 float vidaMaximaJogador = VALOR_VIDA_MAXIMA_INICIAL_JOGADOR;
 int danoJogador;
 int chanceCriticoJogador;
@@ -82,10 +85,14 @@ int op;
 
 // Protótipo das funções do programa
 // Menus do jogo
+void TelaInicial(); // Da output na tela de inicio do jogo
 void LogJogador(); // Da output nas estatísticas do jogador
 void LogInimigo(); // Da output nas estatísticas do inimigo
 void Titulo(); // Da output num cabeçalho com a fase e a pontuação do jogador
 void Log(); // Da output em todas as informações relevantes para o combate
+void BackSpace(int repeticao); // Exclui um número x de caracteres
+void ApagarCaracteres(int repeticao); // Exclui um número x de caracteres do console
+void ApagarTudo(int repeticao); // Usa o BackSpace e o ApagarCaracteres juntos
 
 // Inicialização dos personagens do jogo
 void IniciarInimigo(); // Estabelece os atributos dos inimigos ao longo das fases
@@ -94,6 +101,7 @@ void IniciarJogador(); // Estabelece os atributos do jogador ao longo das fases
 // Upgrades
 int upgrades[5] = {0, 0, 0, 0, 0}; // Array de upgrades, é usado para saber quanto o jogador upou cada upgrada
 int TesteUpgradeMax(int idx); // Testa se certo upgrade vou upado mais que o limite
+char *ImprimirNomeUpgrade(char caractere); // Imprime o núemro do upgrade que o jogador selecionou
 int EscolhaDeUpgrades(int i); // Recebe um valor de escolha para qual upgrade upar e subtrai 1, para que seja compatível com o array
 int IniciarVetEscolhidos(int length, int vetor[]); // Inicia o vetor de upgrades escolhidos
 int EscolhasContem(int vetor[], int length, int numTeste); // Verifica se o jogador escolheu o mesmo upgrade mais de uma vez
@@ -129,8 +137,7 @@ int main()
 
     // Iniciar jogo
     setlocale(LC_ALL, "Portuguese");
-    printf("o---------- Dark Couls ----------o\n");
-    Prosseguir();
+    TelaInicial();
     IniciarJogador();
 
     do{
@@ -143,6 +150,7 @@ int main()
             // Output do menu
             Log();
             op = Menu();
+            printf("\n");
 
             // Ação do jogador
             EscolhaAcaoJogador(op);
@@ -156,7 +164,6 @@ int main()
             Prosseguir();
 
             // Ação do inimigo
-            printf("\n\n");
             printf("Ação do inimigo:\n");
 
             // Determina o comportamento do inimigo conforme sua vida
@@ -178,14 +185,16 @@ int main()
             system("cls");
             printf("\tVocê derrotou seu inimigo!\n");
             Prosseguir();
+
             system("cls");
             MenuDeUpgrade();
+
             system("cls");
             CuraProximaFase();
             printf("Após da batalha, você se senta ao redor de uma fogueira.\n");
             printf("Você deixa as chamas te aquecerem.\n");
             Prosseguir();
-            printf("\n\to----------------------o\n");
+            printf("\to----------------------o\n");
             printf("\tVida maximizada: %.0f\n", vidaJogador);
             printf("\tPoção +2 e mana +2\n");
             printf("\n\tSe prepare para a fase %d!\n", fase + 1);
@@ -213,10 +222,48 @@ int main()
 
 // Funções do programa
 // Menus do jogo
+void TelaInicial()
+{
+    // Da output na tela de inicio do jogo
+    printf("o---------- Dark Couls ----------o\n");
+    printf("\nInsira seu nome sem acentos: ");
+
+    int pos = 0;
+    char ch;
+
+    while(1)
+    {
+        ch = getch();
+
+        if((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z'))
+        {
+            putchar(ch);
+            nomeDoJogador[pos++] = ch;
+        }
+
+        if(pos > 0 && ch == '\b')
+        {
+            pos--;
+            putchar('\b');
+            putchar(' ');
+            putchar('\b');
+        }
+
+        if(pos > 0 && ch == '\r')
+        {
+            nomeDoJogador[pos] = '\0';
+            break;
+        }
+    }
+    printf("\n");
+    Prosseguir();
+}
+
 void LogJogador()
 {
     // Da output nas estatísticas do jogador
     printf("\to----------------------o\n");
+    printf("\t\t%s:\n", nomeDoJogador);
     printf("\tVida: %.0f\n", vidaJogador);
     printf("\tDano: %d\n", danoJogador);
     printf("\tChance de crítico: %d%%\n", chanceCriticoJogador);
@@ -250,6 +297,31 @@ void Log()
     LogJogador();
     printf("\n");
     LogInimigo();
+}
+
+void BackSpace(int repeticao)
+{
+    // Exclui um número x de caracteres
+    for(int i = 0; i < repeticao; i++)
+    {
+        putchar('\b');
+    }
+}
+
+void ApagarCaracteres(int repeticao)
+{
+    // Exclui um número x de caracteres do console
+    for(int i = 0; i < repeticao; i++)
+    {
+        putchar(' ');
+    }
+}
+
+void ApagarTudo(int repeticao)
+{
+    // Usa o BackSpace e o ApagarCaracteres juntos
+    ApagarCaracteres(repeticao);
+    BackSpace(repeticao);
 }
 
 // Inicialização dos personagens do jogo
@@ -302,13 +374,74 @@ int TesteUpgradeMax(int idx)
     return (upgrades[idx] < LIMITE_UPGRADE) ? 1 : 0;
 }
 
+char *ImprimirNomeUpgrade(char caractere)
+{
+    // Imprime o núemro do upgrade que o jogador selecionou
+    switch(caractere)
+    {
+        case '1':
+            printf(" - Aumentar Vida?");
+            BackSpace(18);
+            break;
+        case '2':
+            printf(" - Aumentar Dano?");
+            BackSpace(18);
+            break;
+        case '3':
+            printf(" - Aumentar Crítico?");
+            BackSpace(21);
+            break;
+        case '4':
+            printf(" - Aumentar Cura e Escudo?");
+            BackSpace(27);
+            break;
+        case '5':
+            printf(" - Aumentar Sorte?");
+            BackSpace(19);
+            break;
+        case '6':
+            printf(" - Comprar Cura e Poção?");
+            BackSpace(25);
+            break;
+    }
+}
+
 int EscolhaDeUpgrades(int i)
 {
     /* Recebe um valor de escolha para qual upgrade upar e subtrai 1,
     para que seja compatível com o array */
     printf("%d° -> ", i);
-    scanf("%d", &op);
-    return op - 1;
+
+    char chOp = 'n';
+    int pos = 0;
+
+    while(1)
+    {
+        char auxOp = getch();
+
+        if(auxOp >= '1' && auxOp <= '6' && pos == 0)
+        {
+            pos++;
+            putchar(auxOp);
+            ImprimirNomeUpgrade(auxOp);
+            chOp = auxOp;
+        }
+
+        if(auxOp == '\b' && pos > 0)
+        {
+            pos--;
+            ApagarTudo(30);
+            chOp = 'n';
+        }
+
+        if(auxOp == '\r' && pos > 0)
+        {
+            chOp -= '0';
+            break;
+        }
+    }
+
+    return (int)chOp - 1;
 }
 
 int EscolhasContem(int vetor[], int length, int numTeste)
@@ -397,23 +530,26 @@ void MenuDeUpgrade()
     for(int idx = 1; idx <= pontos; idx++)
     {
         op = EscolhaDeUpgrades(idx);
-        if(!EscolhasContem(escolhas, pontos, op) && (op > -1 && op < 6) && TesteUpgradeMax(op))
+        if(!EscolhasContem(escolhas, pontos, op) && TesteUpgradeMax(op))
         {
             switch(op)
             {
                 case 0:
+                    ApagarTudo(35);
                     printf("Vida aumentada!\n");
                     upgrades[op]++;
                     vidaMaximaJogador += BASE_VIDA_MAXIMA_JOGADOR * fase;
                     escolhas[idx - 1] = op;
                     break;
                 case 1:
+                    ApagarTudo(35);
                     printf("Dano aumentado!\n");
                     upgrades[op]++;
                     danoJogador += BASE_DANO_JOGADOR * fase;
                     escolhas[idx - 1] = op;
                     break;
                 case 2:
+                    ApagarTudo(35);
                     printf("Chance de crítico aumentada!\n");
                     upgrades[op]++;
                     chanceCriticoJogador += BASE_CHANCE_CRITICO_JOGADOR * fase;
@@ -424,6 +560,7 @@ void MenuDeUpgrade()
                     escolhas[idx - 1] = op;
                     break;
                 case 3:
+                    ApagarTudo(35);
                     printf("Cura e escudo aumentados!\n");
                     upgrades[op]++;
                     curaJogador += BASE_CURA_JOGADOR * fase;
@@ -435,6 +572,7 @@ void MenuDeUpgrade()
                     escolhas[idx - 1] = op;
                     break;
                 case 4:
+                    ApagarTudo(35);
                     printf("Sorte aumentada!\n");
                     upgrades[op]++;
                     sorte += fase;
@@ -445,6 +583,7 @@ void MenuDeUpgrade()
                     escolhas[idx - 1] = op;
                     break;
                 case 5:
+                    ApagarTudo(35);
                     printf("+2 poções e +2 manas\n");
                     pocaoJogador += 2;
                     manaJogador += 2;
@@ -457,7 +596,7 @@ void MenuDeUpgrade()
             idx--;
         }
     }
-    getch();
+    Prosseguir();
 }
 
 // Escolha das ações
@@ -475,8 +614,39 @@ int Menu()
         printf("\t[3] - Poção\n");
     }
     printf(" -> ");
-    scanf("%d", &op);
-    return op;
+
+    char chOp = 'n';
+    int pos = 0;
+    char auxOp;
+
+    while(1)
+    {
+        auxOp = getch();
+
+        if(pos == 0 && auxOp >= '1' && auxOp <= '3')
+        {
+            pos++;
+            chOp = auxOp;
+            putchar(chOp);
+        }
+
+        if(pos > 0 && auxOp == '\b')
+        {
+            pos--;
+            putchar('\b');
+            putchar(' ');
+            putchar('\b');
+            chOp = 'n';
+        }
+
+        if(pos > 0 && chOp != 'n' && auxOp == '\r')
+        {
+            chOp -= '0';
+            break;
+        }
+    }
+
+    return (int)chOp;
 }
 
 void EscolhaAcaoJogador(int escolha)
@@ -694,7 +864,39 @@ float AtaqueMagico(int dano, int chanceCritico, char *personagem)
         {
             printf("\tEscolha uma posição para atacar: [1] - [2]\n");
             printf(" -> ");
-            scanf("%d", &op);
+
+            char chOp = 'n';
+            int pos = 0;
+
+            while(1)
+            {
+                char auxOp = getch();
+
+                if(auxOp >= '1' && auxOp <= '2' && pos == 0)
+                {
+                    pos++;
+                    putchar(auxOp);
+                    chOp = auxOp;
+                }
+
+                if(auxOp == '\b' && pos > 0)
+                {
+                    pos--;
+                    putchar('\b');
+                    putchar(' ');
+                    putchar('\b');
+                    chOp = 'n';
+                }
+
+                if(auxOp == '\r' && pos > 0)
+                {
+                    chOp -= '0';
+                    break;
+                }
+            }
+
+            op = (int)chOp;
+            printf("\n");
 
             if(op != ValorAleatorio(sorte) + 1)
             {
@@ -711,7 +913,39 @@ float AtaqueMagico(int dano, int chanceCritico, char *personagem)
         {
             printf("\tEscolha uma posição para desviar: [1] - [2] - [3]\n");
             printf(" -> ");
-            scanf("%d", &op);
+
+            char chOp = 'n';
+            int pos = 0;
+
+            while(1)
+            {
+                char auxOp = getch();
+
+                if(auxOp >= '1' && auxOp <= '3' && pos == 0)
+                {
+                    pos++;
+                    putchar(auxOp);
+                    chOp = auxOp;
+                }
+
+                if(auxOp == '\b' && pos > 0)
+                {
+                    pos--;
+                    putchar('\b');
+                    putchar(' ');
+                    putchar('\b');
+                    chOp = 'n';
+                }
+
+                if(auxOp == '\r' && pos > 0)
+                {
+                    chOp -= '0';
+                    break;
+                }
+            }
+
+            op = (int)chOp;
+            printf("\n");
 
             int posicaoAtaque = ValorAleatorio(3) + 1;
             int posicaoErrada1;
@@ -803,12 +1037,16 @@ int ChecarVitoria()
 void Prosseguir()
 {
     // Congela o console até que o jogador pressione espaço
+    int size = 31;
     printf("\nPresione ESPAÇO para continuar.");
 
     char caractere;
     do{
         caractere = getch();
     } while(caractere != ' ');
+
+    BackSpace(size);
+    ApagarTudo(size);
 }
 
 int AcaoCombo(int comboLimite)
