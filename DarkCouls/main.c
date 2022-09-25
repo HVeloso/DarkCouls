@@ -1,43 +1,70 @@
-// Jogo em C
-// ---------------
+// Organizando o código
+// -- 25/09
+
+// Autor: Hígaro Veloso
+// Email: hvelosocontato@gmail.com
 
 // Importar bibliotecas
 #include <stdio.h>
 #include <stdlib.h>
+#include <conio.h>
 #include <locale.h>
 
-// Declaração de variáveis globais
-//Variáveis base do jogador
-float baseVidaMaximaJogador = 5;
-int baseDanoJogador = 10;
-int baseChanceCriticoJogador = 10;
-int baseCurajogador = 10;
-int baseEscudoJogador = 5;
+// Valores base do jogador
+#define BASE_VIDA_MAXIMA_JOGADOR 5.0
+#define BASE_DANO_JOGADOR 10
+#define BASE_CHANCE_CRITICO_JOGADOR 10
+#define BASE_CURA_JOGADOR 10
+#define BASE_ESCUDO_JOGADOR 5
+#define VALOR_ESCUDO_INICIAL_JOGADOR 5
+#define VALOR_VIDA_MAXIMA_INICIAL_JOGADOR 100
+#define VALOR_SORTE_INICIAL_jOGADOR 4
+#define VALOR_MANA_INICIAL_JOGADOR 2
+#define VALOR_POCAO_INICIAL_JOGADOR 2
+#define MULTIPLICADOR_NORMAL_CRITICO 2.25
+#define MULTIPLICADOR_MAGICO 3.0
+#define MULTIPLICADOR_MAGICO_CRITICO 5.0
 
+// Valores base dos inimigos
+#define BASE_DANO_INIMIGO 10
+#define BASE_CHANCE_CRITICO_INIMIGO 7
+#define BASE_VIDA_INIMIGO 50
+#define BASE_CURA_INIMIGO 5
+#define BASE_CHANCE_DESVIO_INIMIGO 5
+#define VALOR_MODIFICAR_DESVIO_INIMIGO 30
+
+// Limite dos atributos do jogador
+#define LIMITE_ESCUDO_JOGADOR 80
+#define LIMITE_CHANCE_CRITICO_JOGADOR 99
+#define LIMITE_SORTE_JOGADOR 20
+
+// Limite dos atributos do inimigo
+#define LIMITE_CHANCE_CRITICO_INIMIGO 75
+#define LIMITE_CHANCE_DESVIO_INIMIGO 50
+
+// Valores do jogo
+#define RECOMPENSA_MANA 2
+#define RECOMPENSA_POCAO 2
+#define RECOMPENSA_PONTOS 3
+#define RECOMPENSA_SCORE 50
+#define LIMITE_UPGRADE 10
+
+// Declaração de variáveis globais
 // Variáveis do jogador
-float vidaMaximaJogador = 100;
+float vidaMaximaJogador = VALOR_VIDA_MAXIMA_INICIAL_JOGADOR;
 int danoJogador;
 int chanceCriticoJogador;
 int curaJogador;
 int escudoJogador = 0;
-int pocaoJogador = 2;
-int manaJogador = 2;
-int sorte = 4;
+int pocaoJogador = VALOR_POCAO_INICIAL_JOGADOR;
+int manaJogador = VALOR_MANA_INICIAL_JOGADOR;
+int sorte = VALOR_SORTE_INICIAL_jOGADOR;
 
-int upgrades[5] = { 0, 0, 0, 0, 0};
-
-int valorEscudoJogador;
+int valorEscudoJogador; // Quanto o jogador recebe de escudo por poção
 float vidaJogador;
 
-// Variáveis base dos inimigos
-int baseDanoInimigo = 10;
-int baseChanceCriticoInimigo = 7;
-float baseVidaInimigo = 50;
-int baseCuraInimigo = 5;
-int baseChanceDesvioInimigo = 5;
-float vidaMaximaInimigo;
-
 // Variáveis dos inimigos
+float vidaMaximaInimigo;
 int danoInimigo;
 int chanceCriticoInimigo;
 float vidaInimigo;
@@ -46,319 +73,55 @@ int chanceDesvioInimigo;
 
 // Variáveis do jogo
 int fase = 0;
-int baseScore = 50;
 int score = 0;
 int pontos = 0;
 float danoCausado;
 int combo = 0;
+int limiteDesvioAtingido = 0;
 int op;
 
-// Funções do programa
-void LogJogador(){
-    printf("\to----------------------o\n");
-    printf("\tVida: %.0f\n", vidaJogador);
-    printf("\tDano: %d\n", danoJogador);
-    printf("\tChance de crítico: %d%%\n", chanceCriticoJogador);
-    printf("\tMana: %d\n", manaJogador);
-    printf("\tPocões: %d\n", pocaoJogador);
-    printf("\tEscudo: %d%%\n", escudoJogador);
-}
+// Protótipo das funções do programa
+// Menus do jogo
+void LogJogador(); // Da output nas estatísticas do jogador
+void LogInimigo(); // Da output nas estatísticas do inimigo
+void Titulo(); // Da output num cabeçalho com a fase e a pontuação do jogador
+void Log(); // Da output em todas as informações relevantes para o combate
 
-void LogInimigo(){
-    printf("\t\t%d° Inimigo:\n", fase);
-    printf("\tVida: %.0f\n", vidaInimigo);
-    printf("\tDano: %d\n", danoInimigo);
-    printf("\tChance de crítico: %d%%\n", chanceCriticoInimigo);
-    printf("\tChance de desvio: %d%%\n", chanceDesvioInimigo);
-    printf("\to----------------------o\n");
-}
+// Inicialização dos personagens do jogo
+void IniciarInimigo(); // Estabelece os atributos dos inimigos ao longo das fases
+void IniciarJogador(); // Estabelece os atributos do jogador ao longo das fases
 
-void Log(){
-    Titulo();
-    LogJogador();
-    printf("\n");
-    LogInimigo();
-}
+// Upgrades
+int upgrades[5] = {0, 0, 0, 0, 0}; // Array de upgrades, é usado para saber quanto o jogador upou cada upgrada
+int TesteUpgradeMax(int idx); // Testa se certo upgrade vou upado mais que o limite
+int EscolhaDeUpgrades(int i); // Recebe um valor de escolha para qual upgrade upar e subtrai 1, para que seja compatível com o array
+int IniciarVetEscolhidos(int length, int vetor[]); // Inicia o vetor de upgrades escolhidos
+int EscolhasContem(int vetor[], int length, int numTeste); // Verifica se o jogador escolheu o mesmo upgrade mais de uma vez
+void MenuDeUpgrade(); // Da output nas opções de upgrade para o jogador
 
-void Titulo(){
-    printf("\to----------------------o\n");
-    printf("\t%d° Fase; Score: %d\n", fase, score);
-}
+// Escolha das ações
+int Menu(); // Da output nas opções de escolha de ação e deixa o jogador escolher uma delas
+void EscolhaAcaoJogador(int escolha); // Executa a ação escolhida pelo jogador
+int OpcaoAcaoInimigo(int valorSorteado); /* Determina a ação que o inimigo irá tomar de acordo com a quantidade de vida.
+                                            Incrementa ou decrementa o desvio do inimigo*/
+void EscolhaAcaoInimigo(op); // Executa a ação sorteadao pelo inimigo
+int ValorAleatorio(int max); // Retorna um valor inteiro, de zero até um valor máximo
+float Ataque(int dano, int chanceCritico); // Opção de ataque normal, causa dano comum ou crítico
+float AtaqueMagico(int dano, int chanceCritico, char *personagem); /* Opção de ataque mágico, causa dano comum ou crítico,
+                                                                      sendo que no crítico há a opção de desviar do ataque */
+void UsarPocao(); // Cura o jogador e aumenta o valor do seu escudo
 
-void IniciarInimigo(){
-    danoInimigo = baseDanoInimigo * fase;
-    if(danoInimigo >= vidaJogador && vidaJogador > 20){
-        danoInimigo = vidaJogador - 20;
-    }
-    chanceCriticoInimigo = baseChanceCriticoInimigo * fase;
-    if(chanceCriticoInimigo > 60){
-        chanceCriticoInimigo = 60;
-    }
-    vidaMaximaInimigo = baseVidaInimigo * fase;
-    vidaInimigo = vidaMaximaInimigo;
-    curaInimigo = baseCuraInimigo * fase;
-    if(curaInimigo > danoJogador && danoJogador > 10){
-        curaInimigo = danoJogador - 10;
-    }
-    chanceDesvioInimigo = baseChanceDesvioInimigo * fase;
-    if(chanceDesvioInimigo > 35){
-        chanceDesvioInimigo = 35;
-    }
-}
-
-void IniciarJogador(){
-    vidaJogador = vidaMaximaJogador;
-    danoJogador = baseDanoJogador;
-    chanceCriticoJogador = baseChanceCriticoJogador;
-    curaJogador = baseCurajogador;
-    valorEscudoJogador = 10;
-    if(valorEscudoJogador > 90){
-        valorEscudoJogador = 90;
-    }
-}
-
-void CuraProximaFase(){
-    if(vidaJogador <= vidaMaximaJogador){
-	vidaJogador = vidaMaximaJogador;
-    }
-    pocaoJogador += 2;
-    manaJogador += 2;
-}
-
-int TesteUpgradeMax(int idx){
-    return (upgrades[idx] < 10) ? 1 : 0;
-}
-
-int EscolhaDeUpgrades(int i){
-    printf("%d° -> ", i);
-    scanf("%d", &op);
-    return op - 1;
-}
-
-int EscolhasContem(int vetor[], int length, int numTeste){
-    for(int idx = 0; idx < length; idx++){
-        if(vetor[idx] == numTeste){
-            return 1;
-        }
-    }
-    return 0;
-}
-
-int IniciarVetEscolhidos(int length, int vetor[]){
-    for(int idx = 0; idx < length; idx++){
-        vetor[idx] = -1;
-    }
-}
-
-void MenuDeUpgrade(){
-    printf("\to----------------------\n");
-    printf("\to---- Pontos: %d\n", pontos);
-    printf("\to----------------------\n");
-    if(pontos == 1){
-        printf("\tEscolha %d upgrade:\n", pontos);
-    } else {
-        printf("\tEscolha %d upgrades diferentes:\n", pontos);
-    }
-    if(TesteUpgradeMax(0)){
-        printf("\t[1] - Vida -> (Aumenta a vida)\n");
-    } else {
-        printf("\t[Max] - Vida.\n");
-    }
-    if(TesteUpgradeMax(1)){
-        printf("\t[2] - Dano -> (Aumenta o dano).\n");
-    } else {
-        printf("\t[Max] - Dano.\n");
-    }
-    if(TesteUpgradeMax(2)){
-        printf("\t[3] - Chance Crítico -> (Aumenta a chance de crítico).\n");
-    } else {
-        printf("\t[Max] - Chance Crítico.\n");
-    }
-    if(TesteUpgradeMax(3)){
-        printf("\t[4] - Cura e Escudo. -> (Aumenta a cura e escudo recebido)\n");
-    } else {
-        printf("\t[Max] - Cura e Escudo.\n");
-    }
-    if(TesteUpgradeMax(4)){
-        printf("\t[5] - Sorte. -> (Aumenta a chance de acertar ataques mágicos)\n");
-    } else {
-        printf("\t[Max] - Sorte.\n");
-    }
-    printf("\t[6] - Poção e Mana. -> (+2 poções e +2 manas)\n");
-
-    int escolhas[pontos];
-    IniciarVetEscolhidos(pontos, escolhas);
-
-    for(int idx = 1; idx <= pontos; idx++){
-        op = EscolhaDeUpgrades(idx);
-
-        if(!EscolhasContem(escolhas, pontos, op) && (op > -1 && op < 6) && TesteUpgradeMax(op)){
-            switch(op){
-                case 0:
-                    printf("Vida aumentada!\n");
-                    upgrades[op]++;
-                    vidaMaximaJogador += baseVidaMaximaJogador * fase;
-                    escolhas[idx - 1] = op;
-                    break;
-                case 1:
-                    printf("Dano aumentado!\n");
-                    upgrades[op]++;
-                    danoJogador += baseDanoJogador * fase;
-                    escolhas[idx - 1] = op;
-                    break;
-                case 2:
-                    printf("Chance de crítico aumentada!\n");
-                    upgrades[op]++;
-                    chanceCriticoJogador += baseChanceCriticoJogador * fase;
-                    if(chanceCriticoJogador > 70){
-                        chanceCriticoJogador = 70;
-                    }
-                    escolhas[idx - 1] = op;
-                    break;
-                case 3:
-                    printf("Cura e escudo aumentados!\n");
-                    upgrades[op]++;
-                    curaJogador += baseCurajogador * fase;
-                    valorEscudoJogador += baseEscudoJogador * fase;
-                    if(valorEscudoJogador > 75){
-                        valorEscudoJogador = 75;
-                    }
-                    escolhas[idx - 1] = op;
-                    break;
-                case 4:
-                    printf("Sorte aumentada!\n");
-                    upgrades[op]++;
-                    sorte += fase;
-                    if(sorte > 20){
-                        sorte = 20;
-                    }
-                    escolhas[idx - 1] = op;
-                    break;
-                case 5:
-                    printf("+2 poções e +2 manas\n");
-                    pocaoJogador += 2;
-                    manaJogador += 2;
-                    break;
-            }
-        } else {
-            printf("Valor inválido, tente outro.\n");
-            idx--;
-        }
-    }
-    getch();
-}
-
-int Menu(){
-    printf("\tEscolha uma ação:\n");
-    printf("\t[1] - Atacar.\n");
-    if(manaJogador > 0){
-        printf("\t[2] - Ataque mágico.\n");
-    }
-    if(pocaoJogador > 0){
-        printf("\t[3] - Poção\n");
-    }
-    printf(" -> ");
-    scanf("%d", &op);
-    return op;
-}
-
-int ValorAleatorio(int max){
-    srand(time(0));
-    return rand() % max;
-}
-
-float Ataque(int dano, int chanceCritico){
-    if(ValorAleatorio(101) > chanceCritico){
-        return dano;
-    } else {
-        printf("\tDano crítico!\n");
-        return dano * 2.25;
-    }
-}
-
-float AtaqueMagico(int dano, int chanceCritico, char *personagem){
-    if(ValorAleatorio(101) > chanceCritico){
-        return dano * 3;
-    } else {
-
-        if(personagem == "Jogador"){
-
-            printf("\tEscolha uma posição para atacar: [1] - [2]\n");
-            printf(" -> ");
-            scanf("%d", &op);
-
-            if(op != ValorAleatorio(sorte) + 1){
-                printf("\tO inimigo não conseguiu desviar!\n");
-                return dano * 5;
-            } else {
-                printf("\tO inimigo desviou do seu ataque!\n");
-                return 0;
-            }
-        } else {
-
-            printf("\tEscolha uma posição para desviar: [1] - [2] - [3]\n");
-            printf(" -> ");
-            scanf("%d", &op);
-
-            int posicaoAtaque = ValorAleatorio(3) + 1;
-            int posicaoErrada1;
-            int posicaoErrada2;
-            if(posicaoAtaque == 1){
-                posicaoErrada1 = 2;
-                posicaoErrada2 = 3;
-            } else if(posicaoAtaque == 2){
-                posicaoErrada1 = 1;
-                posicaoErrada2 = 3;
-            } else {
-                posicaoErrada1 = 1;
-                posicaoErrada2 = 2;
-            }
-
-            if(op != posicaoErrada1 && op != posicaoErrada2){
-                printf("\tVocê não conseguiu desviar!\n");
-                return dano * 5;
-            } else {
-                printf("\tVocê desviou do ataque com sucesso!\n");
-                printf("\tMana +1, Poção +1\n");
-                manaJogador++;
-                pocaoJogador++;
-                return 0;
-            }
-        }
-    }
-}
-
-void UsarPocao(){
-    pocaoJogador--;
-    vidaJogador += curaJogador;
-    escudoJogador += valorEscudoJogador;
-    if(escudoJogador > 90){
-        escudoJogador = 90;
-    }
-    printf("\tVida +%d\n", curaJogador);
-    printf("\tEscudo +%d%%\n", valorEscudoJogador);
-}
-
-int TesteVida(int valorTeste){
-    return (vidaInimigo <= (vidaMaximaInimigo * ((float)valorTeste / 100))) ? 1 : 0;
-}
-
-void IncrementarDesvio(){
-    chanceDesvioInimigo += 5;
-}
-
-float CorrigirVida(float vida){
-    return (vida <= 0) ? 0 : vida;
-}
-
-int ChecarVitoria(float vida){
-    return (vida <= 0) ? 1 : 0;
-}
-
-void Prosseguir(){
-    printf("\nPresione qualquer tecla para continuar.");
-    getch();
-}
+// Funções de mecânicas do jogo
+int AcaoCombo(int comboLimite); // Faz com que o inimigo tenha um limite (combo) de ataques especiais seguidos
+void CuraProximaFase(); // Maximiza a vida do jogador e acrescenta 2 poções e 2 manas
+void DecrementarDesvio(); // Diminui a chance do inimigo desviar de um ataque
+void IncrementarDesvio(); // Aumenta a chance do inimigo desviar de um ataque
+void Prosseguir(); // Congela o console até que o jogador pressione espaço
+int TesteVida(int valorTeste); /* Testa a porcentagem de vida do inimigo e retorna 1 caso a vida seja igual ou
+                                  menor do valor teste */
+float CorrigirVida(float vida); // Transforma a vida em zero caso ela esteja negativa
+int ChecarVitoria(); // Checa se o inimigo morreu
+int TestarVitoria(); // Testa se o jogador matou o inimigo
 
 // Função main
 int main()
@@ -382,172 +145,36 @@ int main()
             op = Menu();
 
             // Ação do jogador
-            printf("Sua ação:\n");
-            switch(op){
-                case 1: // Opção do ataque comum
-                    printf("\tVocê ataca!\n");
-
-                    if(ValorAleatorio(101) <= chanceDesvioInimigo){
-                        printf("\tO inimigo desviou do seu ataque!\n");
-                    } else {
-                        danoCausado = Ataque(danoJogador, chanceCriticoJogador);
-                        printf("\tVocê causa %.0f de dano no inimigo.\n", danoCausado);
-                        vidaInimigo -= danoCausado;
-                    }
-                    break;
-                case 2: // Opção do ataque mágico
-                    if(manaJogador > 0){
-                        manaJogador--;
-                        printf("\tVocê usou um ataque mágico!\n");
-                        if(ValorAleatorio(101) <= chanceDesvioInimigo){
-                            printf("\tO inimigo desviou do seu ataque!\n");
-                        } else {
-                            danoCausado = AtaqueMagico(danoJogador, chanceCriticoJogador, "Jogador");
-                            printf("\tVocê causa %.0f de dano no inimigo.\n", danoCausado);
-                            vidaInimigo -= danoCausado;
-                        }
-                    } else {
-                        printf("\tVocê está sem mana!\n");
-                    }
-                    break;
-                case 3: // Opção de cura
-                    if(pocaoJogador > 0){
-                        printf("\tVocê usou uma poção e levantou seu escudo!\n");
-                        UsarPocao();
-                    } else {
-                        printf("\tVocê está sem poções!\n");
-                    }
-                    break;
-                default: // Caso nenhuma opção válida tenha sido escolhida
-                    printf("\tVocê fica parado e não toma nenhuma ação.\n");
-                    break;
-            }
+            EscolhaAcaoJogador(op);
 
             // Teste de vitória
-            vidaInimigo = CorrigirVida(vidaInimigo);
-            if(ChecarVitoria(vidaInimigo)){
-                score += baseScore * fase;
-                pontos = 3;
-                Prosseguir();
+            if(TestarVitoria())
+            {
                 break;
             }
 
-            // Ação do inimigo
             Prosseguir();
 
+            // Ação do inimigo
             printf("\n\n");
             printf("Ação do inimigo:\n");
 
             // Determina o comportamento do inimigo conforme sua vida
             op = ValorAleatorio(10);
+            op = OpcaoAcaoInimigo(op);
 
-            if(TesteVida(30)){
-
-                if(op < 2){
-                    op = 1;
-                } else if(op < 5){
-
-                    if(combo == 0){
-                        op = 2;
-                        combo = 1;
-                    } else {
-                        op = 1;
-                        combo = 0;
-                    }
-                } else {
-                    op = 3;
-                }
-                // Aumento da chance de desvio do inimigo
-                printf("\tO inimigo está com pouca vida, ele se concentra e aumenta sua agilidade!\n");
-                printf("\tChance de desvio +5%%\n");
-                IncrementarDesvio();
-
-            } else if(TesteVida(60)){
-
-                if(op < 4){
-                    op = 1;
-                } else if(op < 8){
-
-                    if(combo == 0){
-                        op = 2;
-                        combo = 1;
-                    } else {
-                        op = 1;
-                        combo = 0;
-                    }
-                } else {
-                    op = 3;
-                }
-
-            } else {
-
-                if(op < 6){
-                    op = 1;
-                } else if(op < 9){
-
-                    if(combo == 0){
-                        op = 2;
-                        combo = 1;
-                    } else {
-                        op = 1;
-                        combo = 0;
-                    }
-                } else {
-                    op = 3;
-                }
-            }
-
-            switch(op){
-                case 1: // Ataque comum do inimigo
-                    printf("\tO inimigo ataca!\n");
-                    if(escudoJogador == 0){
-                        danoCausado = Ataque(danoInimigo, chanceCriticoInimigo);
-                        printf("\tO inimigo causa %.0f de dano em você.\n", danoCausado);
-                        vidaJogador -= danoCausado;
-                    } else {
-                        danoCausado = Ataque(danoInimigo, chanceCriticoInimigo);
-                        if(danoCausado > 0){
-                            danoCausado -= danoCausado * escudoJogador / 100;
-                            printf("\tVocê bloqueou %d%% do dano.\n", escudoJogador);
-                            escudoJogador = 0;
-                        }
-                        printf("\tO inimigo causa %.0f de dano em você.\n", danoCausado);
-                        vidaJogador -= danoCausado;
-                    }
-                    break;
-                case 2: // Ataque mágico do inimigo
-                    printf("\tO inimigo usou um ataque mágico!\n");
-                    if(escudoJogador == 0){
-                        danoCausado = AtaqueMagico(danoInimigo, chanceCriticoInimigo, "Inimigo");
-                        printf("\tO inimigo causa %.0f de dano em você.\n", danoCausado);
-                        vidaJogador -= danoCausado;
-                    } else {
-                        danoCausado = AtaqueMagico(danoInimigo, chanceCriticoInimigo, "Inimigo");
-                        if(danoCausado > 0){
-                            danoCausado -= danoCausado * escudoJogador / 100;
-                            printf("\tVocê bloqueou %d%% do dano.\n", escudoJogador);
-                            escudoJogador = 0;
-                        }
-                        printf("\tO inimigo causa %.0f de dano em você.\n", danoCausado);
-                        vidaJogador -= danoCausado;
-                    }
-                    break;
-                case 3: // Cura do inimigo
-                    printf("\tO inimigo conjurou uma magia de cura!\n");
-                    printf("\tVida +%d\n", curaInimigo);
-                    vidaInimigo += curaInimigo;
-                    break;
-            }
-
+            // Ação do inimigo
+            EscolhaAcaoInimigo(op);
             Prosseguir();
 
             // Teste de derrota
             vidaJogador = CorrigirVida(vidaJogador);
-
         } while(vidaJogador > 0);
 
-        if(vidaJogador > 0){
-
+        // Testa se o jogador morreu
+        if(vidaJogador > 0)
+        {
+            // Tela pós batalha, apresenta o menu de upgrades e te cura para a próxima fase
             system("cls");
             printf("\tVocê derrotou seu inimigo!\n");
             Prosseguir();
@@ -565,20 +192,661 @@ int main()
             LogJogador();
             printf("\to----------------------o\n");
             Prosseguir();
-        } else {
+        }
+        else
+        {
             break;
         }
     } while(1);
 
+    /* Tela final do jogo, apresenta os atributos do jogador e do inimigo,
+    a fase que chegou e a pontuação final */
     system("cls");
     printf("\t!-----Você Perdeu!-----!\n");
     printf("\t   Status do jogo:\n");
     Log();
     printf("\nAutor: Hígaro Veloso");
-    printf("\nSe encontrou algum bug ou falha no jogo, por favor mande uma mensagem para:\nEmail: hvelosocontato@gmail.com\n");
+    printf("\nSe encontrou algum bug ou falha no jogo, por favor mande uma mensagem para:\n");
+    printf("Email: hvelosocontato@gmail.com\n");
     return 0;
 }
 
+// Funções do programa
+// Menus do jogo
+void LogJogador()
+{
+    // Da output nas estatísticas do jogador
+    printf("\to----------------------o\n");
+    printf("\tVida: %.0f\n", vidaJogador);
+    printf("\tDano: %d\n", danoJogador);
+    printf("\tChance de crítico: %d%%\n", chanceCriticoJogador);
+    printf("\tMana: %d\n", manaJogador);
+    printf("\tPocões: %d\n", pocaoJogador);
+    printf("\tEscudo: %d%%\n", escudoJogador);
+}
 
-// Autor: Hígaro Veloso
-// Email: hvelosocontato@gmail.com
+void LogInimigo()
+{
+    // Da output nas estatísticas do inimigo
+    printf("\t\t%d° Inimigo:\n", fase);
+    printf("\tVida: %.0f\n", vidaInimigo);
+    printf("\tDano: %d\n", danoInimigo);
+    printf("\tChance de crítico: %d%%\n", chanceCriticoInimigo);
+    printf("\tChance de desvio: %d%%\n", chanceDesvioInimigo);
+    printf("\to----------------------o\n");
+}
+
+void Titulo()
+{
+    // Da output num cabeçalho com a fase e a pontuação do jogador
+    printf("\to----------------------o\n");
+    printf("\t%d° Fase; Score: %d\n", fase, score);
+}
+
+void Log()
+{
+    // Da output em todas as informações relevantes para o combate
+    Titulo();
+    LogJogador();
+    printf("\n");
+    LogInimigo();
+}
+
+// Inicialização dos personagens do jogo
+void IniciarInimigo()
+{
+    // Estabelece os atributos dos inimigos ao longo das fases
+    danoInimigo = BASE_DANO_INIMIGO * fase;
+    if(danoInimigo >= vidaJogador && vidaJogador > 20)
+    {
+        danoInimigo = vidaJogador - 20;
+    }
+    chanceCriticoInimigo = BASE_CHANCE_CRITICO_INIMIGO * fase;
+    if(chanceCriticoInimigo > LIMITE_CHANCE_CRITICO_INIMIGO)
+    {
+        chanceCriticoInimigo = LIMITE_CHANCE_CRITICO_INIMIGO;
+    }
+    vidaMaximaInimigo = BASE_VIDA_INIMIGO * fase;
+    vidaInimigo = vidaMaximaInimigo;
+    curaInimigo = BASE_CURA_INIMIGO * fase;
+    if(curaInimigo > danoJogador && danoJogador > 10)
+    {
+        curaInimigo = danoJogador - 10;
+    }
+    chanceDesvioInimigo = BASE_CHANCE_DESVIO_INIMIGO * fase;
+    if(chanceDesvioInimigo > LIMITE_CHANCE_DESVIO_INIMIGO)
+    {
+        chanceDesvioInimigo = LIMITE_CHANCE_DESVIO_INIMIGO;
+    }
+    limiteDesvioAtingido = 0;
+}
+
+void IniciarJogador()
+{
+    // Estabelece os atributos do jogador ao longo das fases
+    vidaJogador = vidaMaximaJogador;
+    danoJogador = BASE_DANO_JOGADOR;
+    chanceCriticoJogador = BASE_CHANCE_CRITICO_JOGADOR;
+    curaJogador = BASE_CURA_JOGADOR;
+    valorEscudoJogador = VALOR_ESCUDO_INICIAL_JOGADOR;
+    if(valorEscudoJogador > LIMITE_ESCUDO_JOGADOR)
+    {
+        valorEscudoJogador = LIMITE_ESCUDO_JOGADOR;
+    }
+}
+
+// Upgrades
+int TesteUpgradeMax(int idx)
+{
+    // Testa se certo upgrade vou upado mais que o limite
+    return (upgrades[idx] < LIMITE_UPGRADE) ? 1 : 0;
+}
+
+int EscolhaDeUpgrades(int i)
+{
+    /* Recebe um valor de escolha para qual upgrade upar e subtrai 1,
+    para que seja compatível com o array */
+    printf("%d° -> ", i);
+    scanf("%d", &op);
+    return op - 1;
+}
+
+int EscolhasContem(int vetor[], int length, int numTeste)
+{
+    // Verifica se o jogador escolheu o mesmo upgrade mais de uma vez
+    for(int idx = 0; idx < length; idx++)
+    {
+        if(vetor[idx] == numTeste)
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int IniciarVetEscolhidos(int length, int vetor[])
+{
+    // Inicia o vetor de upgrades escolhidos
+    for(int idx = 0; idx < length; idx++)
+    {
+        vetor[idx] = -1;
+    }
+}
+
+void MenuDeUpgrade()
+{
+    // Da output nas opções de upgrade para o jogador
+    printf("\to----------------------\n");
+    printf("\to---- Pontos: %d\n", pontos);
+    printf("\to----------------------\n");
+    if(pontos == 1)
+        {
+        printf("\tEscolha %d upgrade:\n", pontos);
+    }
+    else
+    {
+        printf("\tEscolha %d upgrades diferentes:\n", pontos);
+    }
+    if(TesteUpgradeMax(0))
+    {
+        printf("\t[1] - Vida -> (Aumenta a vida)\n");
+    }
+    else
+        {
+        printf("\t[Max] - Vida.\n");
+    }
+    if(TesteUpgradeMax(1))
+    {
+        printf("\t[2] - Dano -> (Aumenta o dano).\n");
+    }
+    else
+    {
+        printf("\t[Max] - Dano.\n");
+    }
+    if(TesteUpgradeMax(2))
+    {
+        printf("\t[3] - Chance Crítico -> (Aumenta a chance de crítico).\n");
+    }
+    else
+    {
+        printf("\t[Max] - Chance Crítico.\n");
+    }
+    if(TesteUpgradeMax(3))
+    {
+        printf("\t[4] - Cura e Escudo. -> (Aumenta a cura e escudo recebido)\n");
+    }
+    else
+    {
+        printf("\t[Max] - Cura e Escudo.\n");
+    }
+    if(TesteUpgradeMax(4))
+    {
+        printf("\t[5] - Sorte. -> (Aumenta a chance de acertar ataques mágicos)\n");
+    }
+    else
+    {
+        printf("\t[Max] - Sorte.\n");
+    }
+    printf("\t[6] - Poção e Mana. -> (+2 poções e +2 manas)\n");
+
+    // Inicia e coloca os valores no vetor de escolha
+    int escolhas[pontos];
+    IniciarVetEscolhidos(pontos, escolhas);
+
+    // Recebe as opções de upgrade e testa se ela é ou não válida
+    for(int idx = 1; idx <= pontos; idx++)
+    {
+        op = EscolhaDeUpgrades(idx);
+        if(!EscolhasContem(escolhas, pontos, op) && (op > -1 && op < 6) && TesteUpgradeMax(op))
+        {
+            switch(op)
+            {
+                case 0:
+                    printf("Vida aumentada!\n");
+                    upgrades[op]++;
+                    vidaMaximaJogador += BASE_VIDA_MAXIMA_JOGADOR * fase;
+                    escolhas[idx - 1] = op;
+                    break;
+                case 1:
+                    printf("Dano aumentado!\n");
+                    upgrades[op]++;
+                    danoJogador += BASE_DANO_JOGADOR * fase;
+                    escolhas[idx - 1] = op;
+                    break;
+                case 2:
+                    printf("Chance de crítico aumentada!\n");
+                    upgrades[op]++;
+                    chanceCriticoJogador += BASE_CHANCE_CRITICO_JOGADOR * fase;
+                    if(chanceCriticoJogador > LIMITE_CHANCE_CRITICO_JOGADOR)
+                    {
+                        chanceCriticoJogador = LIMITE_CHANCE_CRITICO_JOGADOR;
+                    }
+                    escolhas[idx - 1] = op;
+                    break;
+                case 3:
+                    printf("Cura e escudo aumentados!\n");
+                    upgrades[op]++;
+                    curaJogador += BASE_CURA_JOGADOR * fase;
+                    valorEscudoJogador += BASE_ESCUDO_JOGADOR * fase;
+                    if(valorEscudoJogador > LIMITE_ESCUDO_JOGADOR)
+                    {
+                        valorEscudoJogador = LIMITE_ESCUDO_JOGADOR;
+                    }
+                    escolhas[idx - 1] = op;
+                    break;
+                case 4:
+                    printf("Sorte aumentada!\n");
+                    upgrades[op]++;
+                    sorte += fase;
+                    if(sorte > LIMITE_SORTE_JOGADOR)
+                    {
+                        sorte = LIMITE_SORTE_JOGADOR;
+                    }
+                    escolhas[idx - 1] = op;
+                    break;
+                case 5:
+                    printf("+2 poções e +2 manas\n");
+                    pocaoJogador += 2;
+                    manaJogador += 2;
+                    break;
+            }
+        }
+        else
+        {
+            printf("Valor inválido, tente outro.\n");
+            idx--;
+        }
+    }
+    getch();
+}
+
+// Escolha das ações
+int Menu()
+{
+    // Da output nas opções de escolha de ação e deixa o jogador escolher uma delas
+    printf("\tEscolha uma ação:\n");
+    printf("\t[1] - Atacar.\n");
+    if(manaJogador > 0)
+    {
+        printf("\t[2] - Ataque mágico.\n");
+    }
+    if(pocaoJogador > 0)
+    {
+        printf("\t[3] - Poção\n");
+    }
+    printf(" -> ");
+    scanf("%d", &op);
+    return op;
+}
+
+void EscolhaAcaoJogador(int escolha)
+{
+    // Executa a ação escolhida pelo jogador
+    printf("Sua ação:\n");
+    switch(op)
+    {
+        case 1: // Opção do ataque comum
+            printf("\tVocê ataca!\n");
+
+            if(ValorAleatorio(101) <= chanceDesvioInimigo)
+            {
+                printf("\tO inimigo desviou do seu ataque!\n");
+            }
+            else
+            {
+                danoCausado = Ataque(danoJogador, chanceCriticoJogador);
+                printf("\tVocê causa %.0f de dano no inimigo.\n", danoCausado);
+                vidaInimigo -= danoCausado;
+            }
+            break;
+        case 2: // Opção do ataque mágico
+                if(manaJogador > 0)
+                {
+                    manaJogador--;
+                    printf("\tVocê usou um ataque mágico!\n");
+                if(ValorAleatorio(101) <= chanceDesvioInimigo)
+                {
+                    printf("\tO inimigo desviou do seu ataque!\n");
+                }
+                else
+                {
+                    danoCausado = AtaqueMagico(danoJogador, chanceCriticoJogador, "Jogador");
+                    printf("\tVocê causa %.0f de dano no inimigo.\n", danoCausado);
+                    vidaInimigo -= danoCausado;
+                }
+            }
+            else
+            {
+                printf("\tVocê está sem mana!\n");
+            }
+            break;
+        case 3: // Opção de cura
+            if(pocaoJogador > 0)
+            {
+                printf("\tVocê usou uma poção e levantou seu escudo!\n");
+                UsarPocao();
+            }
+            else
+            {
+                printf("\tVocê está sem poções!\n");
+            }
+            break;
+        default: // Caso nenhuma opção válida tenha sido escolhida
+            printf("\tVocê fica parado e não toma nenhuma ação.\n");
+            break;
+    }
+}
+
+int OpcaoAcaoInimigo(int valorSorteado)
+{
+    // Determina a ação que o inimigo irá tomar de acordo com a quantidade de vida. Incrementa ou decrementa o desvio do inimigo
+    if(TesteVida(30))
+    {
+        if(valorSorteado < 2)
+        {
+            return 1;
+        }
+        else if(valorSorteado < 5)
+        {
+            return AcaoCombo(1);
+        }
+        else
+        {
+            return 3;
+        }
+        // Modifica a chance do inimigo desviar de um ataque conforme os turnos se passam
+        if(limiteDesvioAtingido)
+        {
+            if(chanceDesvioInimigo > 0)
+            {
+                printf("\tO inimigo está se cansando, sua agilidade diminui!\n");
+                printf("\tChance de desvio -%d%%\n", VALOR_MODIFICAR_DESVIO_INIMIGO);
+                DecrementarDesvio();
+                chanceDesvioInimigo = (chanceDesvioInimigo < 0) ? 0 : chanceDesvioInimigo;
+            }
+        }
+        else
+        {
+            printf("\tO inimigo está com pouca vida, ele se concentra e aumenta sua agilidade!\n");
+            printf("\tChance de desvio +%d%%\n", VALOR_MODIFICAR_DESVIO_INIMIGO);
+            IncrementarDesvio();
+        }
+    }
+    else if(TesteVida(60))
+    {
+        if(valorSorteado < 4)
+        {
+            return 1;
+        }
+        else if(valorSorteado < 8)
+        {
+            return AcaoCombo(2);
+        }
+        else
+        {
+            return 3;
+        }
+    }
+    else
+    {
+        if(valorSorteado < 6)
+        {
+            return 1;
+        }
+        else if(valorSorteado < 9)
+        {
+            return AcaoCombo(3);
+        }
+        else
+        {
+            return 3;
+        }
+    }
+}
+
+void EscolhaAcaoInimigo(op)
+{
+    // Executa a ação sorteadao pelo inimigo
+    switch(op)
+    {
+        case 1: // Ataque comum do inimigo
+            printf("\tO inimigo ataca!\n");
+            if(escudoJogador == 0)
+            {
+                danoCausado = Ataque(danoInimigo, chanceCriticoInimigo);
+                printf("\tO inimigo causa %.0f de dano em você.\n", danoCausado);
+                vidaJogador -= danoCausado;
+            }
+            else
+            {
+                danoCausado = Ataque(danoInimigo, chanceCriticoInimigo);
+                if(danoCausado > 0)
+                {
+                    danoCausado -= danoCausado * escudoJogador / 100;
+                    printf("\tVocê bloqueou %d%% do dano.\n", escudoJogador);
+                    escudoJogador = 0;
+                }
+                printf("\tO inimigo causa %.0f de dano em você.\n", danoCausado);
+                vidaJogador -= danoCausado;
+            }
+            break;
+        case 2: // Ataque mágico do inimigo
+            printf("\tO inimigo usou um ataque mágico!\n");
+            if(escudoJogador == 0)
+            {
+                danoCausado = AtaqueMagico(danoInimigo, chanceCriticoInimigo, "Inimigo");
+                printf("\tO inimigo causa %.0f de dano em você.\n", danoCausado);
+                vidaJogador -= danoCausado;
+            }
+            else
+            {
+                danoCausado = AtaqueMagico(danoInimigo, chanceCriticoInimigo, "Inimigo");
+                if(danoCausado > 0)
+                {
+                    danoCausado -= danoCausado * escudoJogador / 100;
+                    printf("\tVocê bloqueou %d%% do dano.\n", escudoJogador);
+                    escudoJogador = 0;
+                }
+                printf("\tO inimigo causa %.0f de dano em você.\n", danoCausado);
+                vidaJogador -= danoCausado;
+            }
+            break;
+        case 3: // Cura do inimigo
+            printf("\tO inimigo conjurou uma magia de cura!\n");
+            printf("\tVida +%d\n", curaInimigo);
+            vidaInimigo += curaInimigo;
+            break;
+    }
+}
+
+int ValorAleatorio(int max)
+{
+    // Retorna um valor inteiro, de zero até um valor máximo
+    srand(time(0));
+    return rand() % max;
+}
+
+float Ataque(int dano, int chanceCritico)
+{
+    // Opção de ataque normal, causa dano comum ou crítico
+    if(ValorAleatorio(101) > chanceCritico)
+    {
+        return dano;
+    }
+    else
+    {
+        printf("\tDano crítico!\n");
+        return dano * MULTIPLICADOR_NORMAL_CRITICO;
+    }
+}
+
+float AtaqueMagico(int dano, int chanceCritico, char *personagem)
+{
+    /* Opção de ataque mágico, causa dano comum ou crítico, sendo que no crítico
+    há a opção de desviar do ataque */
+    if(ValorAleatorio(101) > chanceCritico)
+    {
+        return dano * MULTIPLICADOR_MAGICO;
+    }
+    else
+    {
+        if(personagem == "Jogador")
+        {
+            printf("\tEscolha uma posição para atacar: [1] - [2]\n");
+            printf(" -> ");
+            scanf("%d", &op);
+
+            if(op != ValorAleatorio(sorte) + 1)
+            {
+                printf("\tO inimigo não conseguiu desviar!\n");
+                return dano * MULTIPLICADOR_MAGICO_CRITICO;
+            }
+            else
+            {
+                printf("\tO inimigo desviou do seu ataque!\n");
+                return 0;
+            }
+        }
+        else
+        {
+            printf("\tEscolha uma posição para desviar: [1] - [2] - [3]\n");
+            printf(" -> ");
+            scanf("%d", &op);
+
+            int posicaoAtaque = ValorAleatorio(3) + 1;
+            int posicaoErrada1;
+            int posicaoErrada2;
+
+            if(posicaoAtaque == 1)
+            {
+                posicaoErrada1 = 2;
+                posicaoErrada2 = 3;
+            }
+            else if(posicaoAtaque == 2)
+            {
+                posicaoErrada1 = 1;
+                posicaoErrada2 = 3;
+            }
+            else
+            {
+                posicaoErrada1 = 1;
+                posicaoErrada2 = 2;
+            }
+
+            if(op != posicaoErrada1 && op != posicaoErrada2)
+            {
+                printf("\tVocê não conseguiu desviar!\n");
+                return dano * MULTIPLICADOR_MAGICO_CRITICO;
+            }
+            else
+            {
+                printf("\tVocê desviou do ataque com sucesso!\n");
+                printf("\tMana +1, Poção +1\n");
+                manaJogador++;
+                pocaoJogador++;
+                return 0;
+            }
+        }
+    }
+}
+
+void UsarPocao()
+{
+    // Cura o jogador e aumenta o valor do seu escudo
+    pocaoJogador--;
+    vidaJogador += curaJogador;
+    escudoJogador += valorEscudoJogador;
+    if(escudoJogador > LIMITE_ESCUDO_JOGADOR)
+    {
+        escudoJogador = LIMITE_ESCUDO_JOGADOR;
+    }
+    printf("\tVida +%d\n", curaJogador);
+    printf("\tEscudo +%d%%\n", valorEscudoJogador);
+}
+
+// Funções de mecânicas do jogo
+int TesteVida(int valorTeste)
+{
+    /* Testa a porcentagem de vida do inimigo e retorna 1 caso a vida seja igual ou menor
+    do valor teste */
+    return (vidaInimigo <= (vidaMaximaInimigo * ((float)valorTeste / 100))) ? 1 : 0;
+}
+
+void IncrementarDesvio()
+{
+    // Aumenta a chance do inimigo desviar de um ataque
+    chanceDesvioInimigo += VALOR_MODIFICAR_DESVIO_INIMIGO;
+    if(chanceDesvioInimigo >= LIMITE_CHANCE_DESVIO_INIMIGO){
+        chanceDesvioInimigo = LIMITE_CHANCE_DESVIO_INIMIGO;
+        limiteDesvioAtingido = 1;
+    }
+}
+
+void DecrementarDesvio()
+{
+    // Diminui a chance do inimigo desviar de um ataque
+    chanceDesvioInimigo -= VALOR_MODIFICAR_DESVIO_INIMIGO;
+}
+
+float CorrigirVida(float vida)
+{
+    // Transforma a vida em zero caso ela esteja negativa
+    return (vida <= 0) ? 0 : vida;
+}
+
+int ChecarVitoria()
+{
+    // Checa se o inimigo morreu
+    return (vidaInimigo <= 0) ? 1 : 0;
+}
+
+void Prosseguir()
+{
+    // Congela o console até que o jogador pressione espaço
+    printf("\nPresione ESPAÇO para continuar.");
+
+    char caractere;
+    do{
+        caractere = getch();
+    } while(caractere != ' ');
+}
+
+int AcaoCombo(int comboLimite)
+{
+    // Faz com que o inimigo tenha um limite (combo) de ataques especiais seguidos
+    if(combo < comboLimite)
+    {
+        return 2;
+        combo++;
+    }
+    else
+    {
+        return 1;
+        combo = 0;
+    }
+}
+
+void CuraProximaFase()
+{
+    // Maximiza a vida do jogador e acrescenta 2 poções e 2 manas
+    if(vidaJogador <= vidaMaximaJogador)
+    {
+        vidaJogador = vidaMaximaJogador;
+    }
+    pocaoJogador += RECOMPENSA_POCAO;
+    manaJogador += RECOMPENSA_MANA;
+}
+
+int TestarVitoria()
+{
+    // Testa se o jogador matou o inimigo
+    vidaInimigo = CorrigirVida(vidaInimigo);
+    if(ChecarVitoria())
+    {
+        score += RECOMPENSA_SCORE * fase;
+        pontos = RECOMPENSA_PONTOS;
+        Prosseguir();
+        return 1;
+    }
+    return 0;
+}
