@@ -1,13 +1,8 @@
 /*
-adicionado:
- - Tela de score (com problemas);
- - Menu de escolha de telas;
- - Agora o jogador não por escolher upgrades já maximizados;
- - Atualização em como os valores aleatórios interagem com as estruturas condicionais;
- - Log do jogador agora imprime sua vida máxima quando o jogador morre;
- - Adicionado cores no console;
+ADICIONADO:
+ - Menu inicial setas;
 */
-// --- 26/09
+// ----- 26/09
 
 // Autor: Hígaro Veloso
 // Email: hvelosocontato@gmail.com
@@ -141,7 +136,7 @@ void MenuDeUpgrade(); // Da output nas opções de upgrade para o jogador
 void InimigoUpgrade(); // Aumenta os atributos do inimigo aleatóriamente
 
 // Escolha das ações
-int Menu(); // Da output nas opções de escolha de ação e deixa o jogador escolher uma delas
+int MenuCombate(); // Da output nas opções de escolha de ação e deixa o jogador escolher uma delas
 void EscolhaAcaoJogador(int escolha); // Executa a ação escolhida pelo jogador
 int OpcaoAcaoInimigo(int valorSorteado); /* Determina a ação que o inimigo irá tomar de acordo com a quantidade de vida.
                                             Incrementa ou decrementa o desvio do inimigo*/
@@ -178,15 +173,13 @@ int main()
         MenuDeTelas();
 
         do{
-
             fase++;
             IniciarInimigo();
-            do{
 
+            do{
                 system("cls");
                 // Output do menu
-                Log();
-                op = Menu();
+                op = MenuCombate();
                 printf("\n");
 
                 // Ação do jogador
@@ -274,63 +267,57 @@ int main()
 void TelaDeScore()
 {
     // Mostra as pontuações registradas
-    FILE *arquivo;
-    char linha[TAMANHO_MAXIMO_NOME + 11];
-    int idx = 1;
+    do{
+        int intOp = 1;
+        char chOp = 'n';
 
-    printf(" o------------ SCORE --------------\n\n");
-    arquivo = fopen(PATH_SCORE, "r");
+        do{
+            FILE *arquivo;
+            char linha[TAMANHO_MAXIMO_NOME + 11];
+            int idx = 1;
 
-    while(fgets(linha, TAMANHO_MAXIMO_NOME + 20, arquivo) != NULL)
-    {
-        printf("   %d° - %s", idx++, linha);
-    }
+            system("cls");
+            printf(" o------------ SCORE --------------\n\n");
+            arquivo = fopen(PATH_SCORE, "r");
 
-    if(idx == 1)
-    {
-        printf("    -Nenhum jogador registrado!-\n");
-    }
+            while(fgets(linha, TAMANHO_MAXIMO_NOME + 20, arquivo) != NULL)
+            {
+                printf("   %d° - %s", idx++, linha);
+            }
 
-    fclose(arquivo);
-    printf(" o---------------------------------\n");
+            if(idx == 1)
+            {
+                printf("    -Nenhum jogador registrado!-\n");
+            }
 
-    printf("\n [1]- Para apagar a lista de jogadores.");
-    printf("\n [0]- Para voltar para o menu inicial.");
-    printf("\n -> ");
+            fclose(arquivo);
+            printf(" o---------------------------------\n");
 
-    char opScore;
-    int pos = 0;
-    while(1)
-    {
-        char aux = getch();
+            printf("\n %s Apagar a lista de jogadores." DEFINIR_PADRAO, (intOp == 1) ? DEFINIR_AMARELO " ->" : " ");
+            printf("\n %s Voltar para o menu inicial." DEFINIR_PADRAO, (intOp == 2) ? DEFINIR_AMARELO " ->" : " ");
+            printf("\n\n");
 
-        if(aux >= '0' && aux <= '1' && pos == 0)
+            chOp = getch();
+
+            if(chOp == 80 || chOp == 72)
+            {
+                intOp = (intOp == 1) ? 2 : 1;
+            }
+            else if(chOp == '\r')
+            {
+                break;
+            }
+        } while(1);
+
+        if(intOp == 1)
         {
-            pos++;
-            putchar(aux);
-            opScore = aux;
+            ApagarScore();
         }
-
-        if(aux == '\b' && pos > 0)
+        else if(intOp == 2)
         {
-            pos--;
-            putchar('\b');
-            putchar(' ');
-            putchar('\b');
-        }
-
-        if(aux == '\r' && pos > 0)
-        {
-            opScore -= '0';
             break;
         }
-    }
-
-    if(opScore == 1)
-    {
-        printf("\n");
-        ApagarScore();
-    }
+    } while(1);
 }
 /*
 void ModoDeus()
@@ -394,52 +381,47 @@ void TelaInicial()
 void MenuDeTelas()
 {
     // Apresenta as opções de qual tela encaminhar o jogador
-    while(1)
-    {
-        printf("o---------- Dark Couls ----------o\n");
-        printf("   Escolha uma opção:\n");
-        printf("\n  [1] - Começar jogo.");
-        printf("\n  [2] - Score.");
-        printf("\n  [0] - Sair do Jogo.");
-        printf("\n\n -> ");
+    char chOp = 'n';
+    int intOp = 1;
 
-        char chOp = 'n';
-        int pos = 0;
-
-        while(1)
-        {
-            char auxOp = getch();
-
-            if(auxOp >= '0' && auxOp <= '2' && pos == 0)
+    do{
+        do{
+            system("cls");
+            printf("o---------- Dark Couls ----------o\n");
+            printf("   Escolha uma opção:\n");
+            printf("\n%s Começar jogo." DEFINIR_PADRAO, (intOp == 1) ? DEFINIR_AMARELO " ->" : " ");
+            printf("\n%s Score." DEFINIR_PADRAO, (intOp == 2) ? DEFINIR_AMARELO " ->" : " ");
+            printf("\n%s Sair do Jogo." DEFINIR_PADRAO, (intOp == 3) ? DEFINIR_AMARELO " ->" : " ");
+            chOp = getch();
+            if(chOp == 80)
             {
-                pos++;
-                putchar(auxOp);
-                chOp = auxOp;
+                intOp++;
+                if(intOp > 3)
+                {
+                    intOp = 1;
+                }
             }
-
-            if(pos > 0 && auxOp == '\b')
+            else if(chOp == 72)
             {
-                pos--;
-                putchar('\b');
-                putchar(' ');
-                putchar('\b');
-                chOp = 'n';
+                intOp--;
+                if(intOp < 1)
+                {
+                    intOp = 3;
+                }
             }
-
-            if(pos > 0 && auxOp == '\r')
+            else if(chOp == '\r')
             {
-                chOp -= '0';
                 break;
             }
-        }
+        } while(1);
 
         system("cls");
-        if((int)chOp == 1)
+        if(intOp == 1)
         {
             TelaInicial();
             break;
         }
-        else if((int)chOp == 2)
+        else if(intOp == 2)
         {
             TelaDeScore();
         }
@@ -451,7 +433,7 @@ void MenuDeTelas()
             exit(1);
         }
         system("cls");
-    }
+    }while(1);
 }
 
 void LogJogador()
@@ -485,7 +467,8 @@ void LogInimigo()
 void Titulo()
 {
     // Da output num cabeçalho com a fase e a pontuação do jogador
-    if(vidaJogador > 0){
+    if(vidaJogador > 0)
+    {
         printf("\to----------------------o\n");
     }
     printf("\t%d° Fase; Score: %d\n", fase, score);
@@ -700,6 +683,7 @@ void MenuDeUpgrade()
     {
         printf("\tEscolha %d upgrades diferentes:\n", pontos);
     }
+    printf("\n");
 
     if(TesteUpgradeMax(0))
     {
@@ -893,9 +877,11 @@ void InimigoUpgrade()
 }
 
 // Escolha das ações
-int Menu()
+int MenuCombate()
 {
     // Da output nas opções de escolha de ação e deixa o jogador escolher uma delas
+    Log();
+
     printf("\tEscolha uma ação:\n");
     printf("\t[1] - Atacar.\n");
     if(manaJogador > 0)
@@ -1308,7 +1294,8 @@ void IncrementarDesvio()
 {
     // Aumenta a chance do inimigo desviar de um ataque
     chanceDesvioInimigo += VALOR_MODIFICAR_DESVIO_INIMIGO;
-    if(chanceDesvioInimigo >= LIMITE_CHANCE_DESVIO_INIMIGO && !godmode){
+    if(chanceDesvioInimigo >= LIMITE_CHANCE_DESVIO_INIMIGO && !godmode)
+    {
         chanceDesvioInimigo = LIMITE_CHANCE_DESVIO_INIMIGO;
         limiteDesvioAtingido = 1;
     }
